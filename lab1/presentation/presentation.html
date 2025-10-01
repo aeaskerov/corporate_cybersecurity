@@ -1,0 +1,610 @@
+\begin{frame}{Цель лабораторной работы}
+\protect\hypertarget{ux446ux435ux43bux44c-ux43bux430ux431ux43eux440ux430ux442ux43eux440ux43dux43eux439-ux440ux430ux431ux43eux442ux44b}{}
+Целью лабораторной работы является исследование сценария
+целенаправленной атаки на корпоративный мессенджер и сопутствующие
+сервисы, выявить и продемонстрировать эксплуатацию реальных уязвимостей
+(WpDiscuz, ProxyLogon, RocketChat), а также отработать методы
+обнаружения, локализации и нейтрализации последствий компрометации для
+восстановления безопасности информационной инфраструктуры организации.
+\end{frame}
+
+\begin{frame}{Теоретическое введение}
+\protect\hypertarget{ux442ux435ux43eux440ux435ux442ux438ux447ux435ux441ux43aux43eux435-ux432ux432ux435ux434ux435ux43dux438ux435}{}
+\begin{block}{Легенда. Защита корпоративного мессенджера}
+\protect\hypertarget{ux43bux435ux433ux435ux43dux434ux430.-ux437ux430ux449ux438ux442ux430-ux43aux43eux440ux43fux43eux440ux430ux442ux438ux432ux43dux43eux433ux43e-ux43cux435ux441ux441ux435ux43dux434ux436ux435ux440ux430}{}
+Конкуренты решили скомпрометировать деятельность Компании и нашли для
+этого исполнителя. Злоумышленник находит в Интернете сайт
+соответствующего предприятия и решает провести атаку на него с целью
+получения доступа к внутренним ресурсам. Проэксплуатировав обнаруженную
+на сайте уязвимость, нарушитель стремится захватить управление другими
+ресурсами защищаемой сети, в том числе, пытается закрепиться на почтовом
+сервере и продолжить атаку. Главная задача злоумышленника - получение
+доступа к переписке сотрудников компании, раскрытие учётных данных
+пользователей, зарегистрированных в приложении корпоративного
+мессенджера, с целью использования их для нанесения ущерба репутации
+конкурирующей Компании.
+\end{block}
+\end{frame}
+
+\begin{frame}{Теоретическое введение}
+\protect\hypertarget{ux442ux435ux43eux440ux435ux442ux438ux447ux435ux441ux43aux43eux435-ux432ux432ux435ux434ux435ux43dux438ux435-1}{}
+\begin{block}{Описание уязвимостей}
+\protect\hypertarget{ux43eux43fux438ux441ux430ux43dux438ux435-ux443ux44fux437ux432ux438ux43cux43eux441ux442ux435ux439}{}
+\begin{block}{WpDiscuz}
+\protect\hypertarget{wpdiscuz}{}
+CVE-2020-24186 -- это уязвимость в плагине для создания комментариев
+WpDiscuz версии с 7.0.0 по 7.0.4 включительно. Уязвимость позволяет
+получить RCE (удаленное выполнение кода).
+\end{block}
+
+\begin{block}{Proxylogon}
+\protect\hypertarget{proxylogon}{}
+Proxylogon представляет собой SSRFуязвимость, позволяющую обойти
+аутентификацию и выдать себя за администратора.
+
+Следующий шаг после SSRF -- эксплуатация CVE 2020-27065. Данная
+уязвимость является следствием неэффективного ограничения выбора
+расположения backup виртуальной директории автономных адресных книг.
+\end{block}
+\end{block}
+\end{frame}
+
+\begin{frame}{Теоретическое введение}
+\protect\hypertarget{ux442ux435ux43eux440ux435ux442ux438ux447ux435ux441ux43aux43eux435-ux432ux432ux435ux434ux435ux43dux438ux435-2}{}
+\begin{block}{Описание уязвимостей}
+\protect\hypertarget{ux43eux43fux438ux441ux430ux43dux438ux435-ux443ux44fux437ux432ux438ux43cux43eux441ux442ux435ux439-1}{}
+\begin{block}{RocketChat}
+\protect\hypertarget{rocketchat}{}
+CVE-2021-22911 представляет собой сочетание из двух SQL-инъекций: -
+слепая NoSQL-инъекция, - NoSQL-инъекция №2: повышение привилегий.
+
+CVE-2022-0847 (Dirty Pipe) представляет собой уязвимость повышения
+привилегий, находящаяся в самом ядре Linux версии 5.8 и выше.
+\end{block}
+\end{block}
+\end{frame}
+
+\begin{frame}{Ход выполнения лабораторной работы}
+\protect\hypertarget{ux445ux43eux434-ux432ux44bux43fux43eux43bux43dux435ux43dux438ux44f-ux43bux430ux431ux43eux440ux430ux442ux43eux440ux43dux43eux439-ux440ux430ux431ux43eux442ux44b}{}
+\begin{figure}
+\hypertarget{fig:001}{%
+\centering
+\includegraphics[width=0.6\textwidth,height=\textheight]{image/1.png}
+\caption{Подключение к серверу}\label{fig:001}
+}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Ход выполнения лабораторной работы}
+\protect\hypertarget{ux445ux43eux434-ux432ux44bux43fux43eux43bux43dux435ux43dux438ux44f-ux43bux430ux431ux43eux440ux430ux442ux43eux440ux43dux43eux439-ux440ux430ux431ux43eux442ux44b-1}{}
+\begin{figure}
+\hypertarget{fig:002}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/2.png}
+\caption{Вектор атаки}\label{fig:002}
+}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a}{}
+\begin{figure}
+\hypertarget{fig:003}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/3.png}
+\caption{Подключение к удаленному рабочему столу}\label{fig:003}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-1}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-1}{}
+\begin{figure}
+\hypertarget{fig:004}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/4.png}
+\caption{Просмотр пароля}\label{fig:004}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-2}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-2}{}
+\begin{figure}
+\hypertarget{fig:005}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/5.png}
+\caption{Вход в KeyPass 2}\label{fig:005}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-3}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-3}{}
+\begin{figure}
+\hypertarget{fig:006}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/6.png}
+\caption{Папка атакованного сервера}\label{fig:006}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-4}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-4}{}
+\begin{figure}
+\hypertarget{fig:007}{%
+\centering
+\includegraphics[width=0.6\textwidth,height=\textheight]{image/7.png}
+\caption{Атакованный сервер}\label{fig:007}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-5}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-5}{}
+\begin{figure}
+\hypertarget{fig:008}{%
+\centering
+\includegraphics[width=0.6\textwidth,height=\textheight]{image/8.png}
+\caption{Авторизация}\label{fig:008}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-6}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-6}{}
+\begin{figure}
+\hypertarget{fig:009}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/9.png}
+\caption{Плагин UpdraftPlus в репозитории WordPress}\label{fig:009}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-7}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-7}{}
+\begin{figure}
+\hypertarget{fig:010}{%
+\centering
+\includegraphics[width=0.6\textwidth,height=\textheight]{image/10.png}
+\caption{Существующие резервные копии UpdraftPlus}\label{fig:010}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-8}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-8}{}
+\begin{figure}
+\hypertarget{fig:011}{%
+\centering
+\includegraphics[width=0.6\textwidth,height=\textheight]{image/11.png}
+\caption{Компоненты для восстановления}\label{fig:011}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-9}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-9}{}
+\begin{figure}
+\hypertarget{fig:012}{%
+\centering
+\includegraphics[width=0.6\textwidth,height=\textheight]{image/12.png}
+\caption{Ошибка восстановления}\label{fig:012}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-10}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-10}{}
+\begin{figure}
+\hypertarget{fig:013}{%
+\centering
+\includegraphics[width=0.6\textwidth,height=\textheight]{image/13.png}
+\caption{Успешное выполнение восстановления}\label{fig:013}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-11}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-11}{}
+\begin{figure}
+\hypertarget{fig:014}{%
+\centering
+\includegraphics[width=0.6\textwidth,height=\textheight]{image/14.png}
+\caption{Обновленная страница сайта}\label{fig:014}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-12}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-12}{}
+\begin{figure}
+\hypertarget{fig:015}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/15.png}
+\caption{Отображение информации о TCP-соединениях. Процесс закрытия
+meterpreter-сессии}\label{fig:015}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел WpDiscuz}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-wpdiscuz-13}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-13}{}
+\begin{figure}
+\hypertarget{fig:016}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/16.png}
+\caption{Уязвимость и последствия устранены}\label{fig:016}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon}{}
+\begin{block}{Обнаружение CVE 2021-26855 (SSRF) средствами ОС}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-cve-2021-26855-ssrf-ux441ux440ux435ux434ux441ux442ux432ux430ux43cux438-ux43eux441}{}
+\begin{figure}
+\hypertarget{fig:017}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/17.png}
+\caption{Подключение к удаленному рабочему столу}\label{fig:017}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon-1}{}
+\begin{block}{Обнаружение CVE 2021-26855 (SSRF) средствами ОС}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-cve-2021-26855-ssrf-ux441ux440ux435ux434ux441ux442ux432ux430ux43cux438-ux43eux441-1}{}
+\begin{figure}
+\hypertarget{fig:018}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/18.png}
+\caption{Подключение к удаленному рабочему столу}\label{fig:018}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon-2}{}
+\begin{block}{Обнаружение CVE 2021-26855 (SSRF) средствами ОС}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-cve-2021-26855-ssrf-ux441ux440ux435ux434ux441ux442ux432ux430ux43cux438-ux43eux441-2}{}
+\begin{figure}
+\hypertarget{fig:019}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/19.png}
+\caption{Артефакты, оставленные атакой в журнале «IIS»}\label{fig:019}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon-3}{}
+\begin{block}{Обнаружение CVE 2021-26855 (SSRF) средствами ОС}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-cve-2021-26855-ssrf-ux441ux440ux435ux434ux441ux442ux432ux430ux43cux438-ux43eux441-3}{}
+\begin{figure}
+\hypertarget{fig:020}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/20.png}
+\caption{Артефакты, оставленные атакой в журнале «IIS»}\label{fig:020}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon-4}{}
+\begin{block}{Обнаружение CVE 2021-26855 (SSRF) средствами ViPNet IDS
+NS}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-cve-2021-26855-ssrf-ux441ux440ux435ux434ux441ux442ux432ux430ux43cux438-vipnet-ids-ns}{}
+\begin{figure}
+\hypertarget{fig:021}{%
+\centering
+\includegraphics[width=0.6\textwidth,height=\textheight]{image/21.png}
+\caption{Вход в ViPNet IDS NS}\label{fig:021}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon-5}{}
+\begin{block}{Обнаружение CVE 2021-26855 (SSRF) средствами ViPNet IDS
+NS}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-cve-2021-26855-ssrf-ux441ux440ux435ux434ux441ux442ux432ux430ux43cux438-vipnet-ids-ns-1}{}
+\begin{figure}
+\hypertarget{fig:022}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/22.png}
+\caption{Список событий, направленных на уязвимый сервер}\label{fig:022}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon-6}{}
+\begin{block}{Устранение уязвимостей}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-ux443ux44fux437ux432ux438ux43cux43eux441ux442ux435ux439}{}
+\begin{figure}
+\hypertarget{fig:023}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/23.png}
+\caption{Окно Internet Information Services (IIS)
+Manager}\label{fig:023}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon-7}{}
+\begin{block}{Устранение уязвимостей}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-ux443ux44fux437ux432ux438ux43cux43eux441ux442ux435ux439-1}{}
+\begin{figure}
+\hypertarget{fig:024}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/24.png}
+\caption{«IP Address and Domain Restrictions»}\label{fig:024}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon-8}{}
+\begin{block}{Устранение уязвимостей}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-ux443ux44fux437ux432ux438ux43cux43eux441ux442ux435ux439-2}{}
+\begin{figure}
+\hypertarget{fig:025}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/25.png}
+\caption{Сокет с узлом нарушителя}\label{fig:025}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon-9}{}
+\begin{block}{Устранение уязвимостей}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-ux443ux44fux437ux432ux438ux43cux43eux441ux442ux435ux439-3}{}
+\begin{figure}
+\hypertarget{fig:026}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/26.png}
+\caption{Завершение процессов}\label{fig:026}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon-10}{}
+\begin{block}{Устранение уязвимостей}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-ux443ux44fux437ux432ux438ux43cux43eux441ux442ux435ux439-4}{}
+\begin{figure}
+\hypertarget{fig:027}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/27.png}
+\caption{Удаление файла}\label{fig:027}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел Proxylogon}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-proxylogon-11}{}
+\begin{block}{Устранение уязвимостей}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-ux443ux44fux437ux432ux438ux43cux43eux441ux442ux435ux439-5}{}
+\begin{figure}
+\hypertarget{fig:028}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/28.png}
+\caption{Уязвимость и последствия устранены}\label{fig:028}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел RocketChat}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-rocketchat}{}
+\begin{block}{Устранение CVE-2021-22911 (NoSQL Injection)}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-cve-2021-22911-nosql-injection}{}
+\begin{figure}
+\hypertarget{fig:029}{%
+\centering
+\includegraphics[width=0.6\textwidth,height=\textheight]{image/29.png}
+\caption{Восстановление пароля}\label{fig:029}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел RocketChat}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-rocketchat-1}{}
+\begin{block}{Устранение CVE-2021-22911 (NoSQL Injection)}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-cve-2021-22911-nosql-injection-1}{}
+\begin{figure}
+\hypertarget{fig:030}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/30.png}
+\caption{Ссылка для сброса пароля}\label{fig:030}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел RocketChat}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-rocketchat-2}{}
+\begin{block}{Устранение CVE-2021-22911 (NoSQL Injection)}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-cve-2021-22911-nosql-injection-2}{}
+\begin{figure}
+\hypertarget{fig:031}{%
+\centering
+\includegraphics[width=0.5\textwidth,height=\textheight]{image/31.png}
+\caption{Генерация одноразового пароля}\label{fig:031}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел RocketChat}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-rocketchat-3}{}
+\begin{block}{Устранение CVE-2021-22911 (NoSQL Injection)}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-cve-2021-22911-nosql-injection-3}{}
+\begin{figure}
+\hypertarget{fig:032}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/32.png}
+\caption{Генерация одноразового пароля}\label{fig:032}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел RocketChat}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-rocketchat-4}{}
+\begin{block}{Устранение CVE-2021-22911 (NoSQL Injection)}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-cve-2021-22911-nosql-injection-4}{}
+\begin{figure}
+\hypertarget{fig:033}{%
+\centering
+\includegraphics[width=0.6\textwidth,height=\textheight]{image/33.png}
+\caption{Двухфакторная аутентификация}\label{fig:033}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел RocketChat}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-rocketchat-5}{}
+\begin{block}{Устранение CVE-2021-22911 (NoSQL Injection)}
+\protect\hypertarget{ux443ux441ux442ux440ux430ux43dux435ux43dux438ux435-cve-2021-22911-nosql-injection-5}{}
+\begin{figure}
+\hypertarget{fig:034}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/34.png}
+\caption{Настройка конфигурации БД}\label{fig:034}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел RocketChat}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-rocketchat-6}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-14}{}
+\begin{figure}
+\hypertarget{fig:035}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/35.png}
+\caption{Пример сокета с узлом нарушителя}\label{fig:035}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Уязвимый узел RocketChat}
+\protect\hypertarget{ux443ux44fux437ux432ux438ux43cux44bux439-ux443ux437ux435ux43b-rocketchat-7}{}
+\begin{block}{Обнаружение и нейтрализация полезных нагрузок}
+\protect\hypertarget{ux43eux431ux43dux430ux440ux443ux436ux435ux43dux438ux435-ux438-ux43dux435ux439ux442ux440ux430ux43bux438ux437ux430ux446ux438ux44f-ux43fux43eux43bux435ux437ux43dux44bux445-ux43dux430ux433ux440ux443ux437ux43eux43a-15}{}
+\begin{figure}
+\hypertarget{fig:036}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/36.png}
+\caption{Уязвимость и последствия устранены}\label{fig:036}
+}
+\end{figure}
+\end{block}
+\end{frame}
+
+\begin{frame}{Карточки индидентов}
+\protect\hypertarget{ux43aux430ux440ux442ux43eux447ux43aux438-ux438ux43dux434ux438ux434ux435ux43dux442ux43eux432}{}
+\begin{figure}
+\hypertarget{fig:037}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/37.png}
+\caption{WP Disckuz RCE}\label{fig:037}
+}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Карточки индидентов}
+\protect\hypertarget{ux43aux430ux440ux442ux43eux447ux43aux438-ux438ux43dux434ux438ux434ux435ux43dux442ux43eux432-1}{}
+\begin{figure}
+\hypertarget{fig:038}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/38.png}
+\caption{Proxylogon}\label{fig:038}
+}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Карточки индидентов}
+\protect\hypertarget{ux43aux430ux440ux442ux43eux447ux43aux438-ux438ux43dux434ux438ux434ux435ux43dux442ux43eux432-2}{}
+\begin{figure}
+\hypertarget{fig:039}{%
+\centering
+\includegraphics[width=0.7\textwidth,height=\textheight]{image/39.png}
+\caption{Rocketchat RCE}\label{fig:039}
+}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Вывод}
+\protect\hypertarget{ux432ux44bux432ux43eux434}{}
+В ходе выполнения данной лабораторной работы мы исследовали сценарии
+целенаправленной атаки на корпоративный мессенджер и сопутствующие
+сервисы, выявили и продемонстрировали эксплуатацию реальных уязвимостей
+(WpDiscuz, ProxyLogon, RocketChat), а также отработали методы
+обнаружения, локализации и нейтрализации последствий компрометации для
+восстановления безопасности информационной инфраструктуры организации.
+\end{frame}
